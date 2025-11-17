@@ -62,8 +62,12 @@ else
     print_info "Domain: $DOMAIN_NAME"
 fi
 
+# Nginx setup
+read -p "Install and configure Nginx reverse proxy? (y/n, default: n): " SETUP_NGINX
+SETUP_NGINX=${SETUP_NGINX:-n}
+
 # SSL setup
-if [ "$DOMAIN_NAME" != "_" ]; then
+if [ "$SETUP_NGINX" = "y" ] && [ "$DOMAIN_NAME" != "_" ]; then
     read -p "Set up SSL with Let's Encrypt? (y/n, default: n): " SETUP_SSL
     SETUP_SSL=${SETUP_SSL:-n}
 else
@@ -74,6 +78,7 @@ echo ""
 echo -e "${GREEN}Configuration Summary:${NC}"
 echo "  Port: $PORT"
 echo "  Domain: $DOMAIN_NAME"
+echo "  Nginx: $([ "$SETUP_NGINX" = "y" ] && echo "Yes" || echo "No")"
 echo "  SSL: $([ "$SETUP_SSL" = "y" ] && echo "Yes" || echo "No")"
 echo ""
 read -p "Continue with deployment? (y/n): " CONFIRM
@@ -91,17 +96,14 @@ print_status "System updated"
 
 # Step 2: Install dependencies
 echo -e "${YELLOW}Step 2: Installing dependencies...${NC}"
-apt-get install -y \
-    python3 \
-    python3-pip \
-    python3-venv \
-    git \
-    nginx \
-    supervisor \
-    poppler-utils \
-    tesseract-ocr \
-    libtesseract-dev \
-    libpoppler-cpp-dev
+PACKAGES="python3 python3-pip python3-venv git poppler-utils tesseract-ocr libtesseract-dev libpoppler-cpp-dev"
+
+# Add Nginx if requested
+if [ "$SETUP_NGINX" = "y" ]; then
+    PACKAGES="$PACKAGES nginx"
+fi
+
+apt-get install -y $PACKAGES
 print_status "Dependencies installed"
 
 # Step 3: Create application user
@@ -181,9 +183,10 @@ WantedBy=multi-user.target
 EOF
 print_status "Systemd service created"
 
-# Step 9: Create Nginx configuration
-echo -e "${YELLOW}Step 9: Configuring Nginx...${NC}"
-cat > /etc/nginx/sites-available/${APP_NAME} << EOF
+# Step 9: Configure Nginx (optional)
+if [ "$SETUP_NGINX" = "y" ]; then
+    echo -e "${YELLOW}Step 9: Configuring Nginx...${NC}"
+    cat > /etc/nginx/sites-available/${APP_NAME} << EOF
 server {
     listen 80;
     server_name $DOMAIN_NAME;
@@ -217,11 +220,15 @@ server {
 }
 EOF
 
-# Enable Nginx site
-ln -sf /etc/nginx/sites-available/${APP_NAME} /etc/nginx/sites-enabled/
-rm -f /etc/nginx/sites-enabled/default
-nginx -t && systemctl reload nginx
-print_status "Nginx configured"
+    # Enable Nginx site
+    ln -sf /etc/nginx/sites-available/${APP_NAME} /etc/nginx/sites-enabled/
+    rm -f /etc/nginx/sites-enabled/default
+    nginx -t && systemctl reload nginx
+    print_status "Nginx configured"
+else
+    echo -e "${YELLOW}Step 9: Skipping Nginx configuration${NC}"
+    print_info "Application will be accessible directly on port $PORT"
+fi
 
 # Step 10: Create environment file
 echo -e "${YELLOW}Step 10: Creating environment configuration...${NC}"
@@ -268,16 +275,26 @@ echo -e "${YELLOW}Step 11: Starting services...${NC}"
 systemctl daemon-reload
 systemctl enable ${APP_NAME}
 systemctl start ${APP_NAME}
-systemctl enable nginx
-systemctl start nginx
-print_status "Services started"
+
+if [ "$SETUP_NGINX" = "y" ]; then
+    systemctl enable nginx
+    systemctl start nginx
+    print_status "CataBot and Nginx services started"
+else
+    print_status "CataBot service started"
+fi
 
 # Step 12: Configure firewall (if ufw is installed)
 if command -v ufw &> /dev/null; then
     echo -e "${YELLOW}Step 12: Configuring firewall...${NC}"
-    ufw allow 80/tcp
-    ufw allow 443/tcp
-    print_status "Firewall configured"
+    if [ "$SETUP_NGINX" = "y" ]; then
+        ufw allow 80/tcp
+        ufw allow 443/tcp
+        print_status "Firewall configured (HTTP/HTTPS)"
+    else
+        ufw allow $PORT/tcp
+        print_status "Firewall configured (port $PORT)"
+    fi
 else
     print_info "UFW not installed, skipping firewall configuration"
 fi
@@ -374,14 +391,21 @@ systemctl status ${APP_NAME} --no-pager | head -n 10
 echo ""
 echo -e "${GREEN}CataBot is now running!${NC}"
 echo ""
-if [ "$DOMAIN_NAME" != "_" ]; then
-    if [ "$SETUP_SSL" = "y" ]; then
-        echo "Access the application at: https://$DOMAIN_NAME"
+
+# Show access URL based on configuration
+if [ "$SETUP_NGINX" = "y" ]; then
+    if [ "$DOMAIN_NAME" != "_" ]; then
+        if [ "$SETUP_SSL" = "y" ]; then
+            echo "Access the application at: https://$DOMAIN_NAME"
+        else
+            echo "Access the application at: http://$DOMAIN_NAME"
+        fi
     else
-        echo "Access the application at: http://$DOMAIN_NAME"
+        echo "Access the application at: http://$(hostname -I | awk '{print $1}')"
     fi
 else
     echo "Access the application at: http://$(hostname -I | awk '{print $1}'):$PORT"
+    echo "Or from the server: http://localhost:$PORT"
 fi
 echo ""
 echo "Useful commands:"
@@ -394,11 +418,18 @@ echo "  - Update app:       sudo $APP_DIR/update.sh"
 echo ""
 echo -e "${YELLOW}Important:${NC}"
 echo "  1. Edit $APP_DIR/.env to add your API keys"
-if [ "$SETUP_SSL" != "y" ] && [ "$DOMAIN_NAME" != "_" ]; then
+if [ "$SETUP_NGINX" = "y" ] && [ "$SETUP_SSL" != "y" ] && [ "$DOMAIN_NAME" != "_" ]; then
     echo "  2. Set up SSL with: sudo certbot --nginx -d $DOMAIN_NAME"
 fi
-echo "  2. Backups run daily at 2 AM (check with: sudo crontab -u $APP_USER -l)"
-echo "  3. Logs are rotated weekly"
+if [ "$SETUP_NGINX" != "y" ]; then
+    echo "  2. Consider setting up Nginx as reverse proxy for production"
+    echo "     See DEPLOYMENT.md for instructions"
+fi
+echo "  3. Backups run daily at 2 AM (check with: sudo crontab -u $APP_USER -l)"
+echo "  4. Logs are rotated weekly"
+if [ "$SETUP_NGINX" != "y" ]; then
+    echo "  5. Make sure firewall allows port $PORT: sudo ufw allow $PORT/tcp"
+fi
 echo ""
 echo -e "${GREEN}Deployment completed successfully!${NC}"
 echo ""

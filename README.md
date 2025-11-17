@@ -221,8 +221,11 @@ sudo ./deploy.sh
 部署腳本會自動：
 - 安裝所有依賴
 - 創建 systemd 服務
-- 配置 Nginx 反向代理
+- 可選配置 Nginx 反向代理（默認跳過）
 - 設置日誌輪換和備份
+
+> **注意**: Nginx 現在是可選的。如果遇到 Nginx 問題，可以選擇跳過，應用將直接在指定端口運行。
+> 詳見 [DEPLOYMENT_NO_NGINX.md](DEPLOYMENT_NO_NGINX.md)
 
 ### 部署後驗證 Post-Deployment Verification
 
@@ -239,6 +242,7 @@ sudo ./diagnose.sh
 ### 部署文檔 Deployment Documentation
 
 - **[DEPLOYMENT.md](DEPLOYMENT.md)** - 完整部署指南
+- **[DEPLOYMENT_NO_NGINX.md](DEPLOYMENT_NO_NGINX.md)** - 無 Nginx 部署指南（推薦新手）
 - **[DEPLOYMENT_FIXES.md](DEPLOYMENT_FIXES.md)** - 部署問題修復說明
 - **[QUICK_REFERENCE.md](QUICK_REFERENCE.md)** - 常用命令快速參考
 
