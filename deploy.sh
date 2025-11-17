@@ -26,6 +26,19 @@ if [ "$EUID" -ne 0 ]; then
     exit 1
 fi
 
+# Function to print status
+print_status() {
+    echo -e "${GREEN}[✓]${NC} $1"
+}
+
+print_error() {
+    echo -e "${RED}[✗]${NC} $1"
+}
+
+print_info() {
+    echo -e "${YELLOW}[i]${NC} $1"
+}
+
 # Prompt for configuration
 echo -e "${YELLOW}Configuration:${NC}"
 echo ""
@@ -69,19 +82,6 @@ if [ "$CONFIRM" != "y" ]; then
     exit 0
 fi
 echo ""
-
-# Function to print status
-print_status() {
-    echo -e "${GREEN}[✓]${NC} $1"
-}
-
-print_error() {
-    echo -e "${RED}[✗]${NC} $1"
-}
-
-print_info() {
-    echo -e "${YELLOW}[i]${NC} $1"
-}
 
 # Step 1: Update system
 echo -e "${YELLOW}Step 1: Updating system packages...${NC}"
