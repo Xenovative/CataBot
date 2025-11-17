@@ -1,0 +1,152 @@
+═══════════════════════════════════════════════════════════════
+                    CataBot 快速上手指南
+                  Quick Start Guide for CataBot
+═══════════════════════════════════════════════════════════════
+
+🎉 歡迎使用 CataBot！Welcome to CataBot!
+
+這是一個 AI 學術論文目錄系統，可以：
+1. 自動爬取 PDF（網站或本地）
+2. 提取論文元數據（作者、標題、年份等）
+3. AI 智能學科分類
+4. 生成多種格式的目錄（Excel、HTML、JSON、CSV）
+
+═══════════════════════════════════════════════════════════════
+第一步：安裝 STEP 1: Installation
+═══════════════════════════════════════════════════════════════
+
+Windows 用戶（推薦）：
+  雙擊運行：setup.bat
+
+或手動安裝：
+  pip install -r requirements.txt
+
+═══════════════════════════════════════════════════════════════
+第二步：運行演示 STEP 2: Run Demo
+═══════════════════════════════════════════════════════════════
+
+最簡單的方式，無需準備 PDF：
+
+Windows 用戶：
+  雙擊運行：run_demo.bat
+
+或命令行：
+  python test_demo.py
+
+這會生成示範數據和輸出文件到 demo_output/ 目錄
+
+═══════════════════════════════════════════════════════════════
+第三步：處理真實 PDF STEP 3: Process Real PDFs
+═══════════════════════════════════════════════════════════════
+
+方式 1 - 處理本地資料夾（最常用）：
+  python main.py --directory ./你的PDF資料夾
+
+方式 2 - 從網站爬取：
+  python main.py --url https://example.com/papers --depth 2
+
+方式 3 - 處理單個文件：
+  python main.py --pdf 論文.pdf
+
+═══════════════════════════════════════════════════════════════
+常用命令 Common Commands
+═══════════════════════════════════════════════════════════════
+
+# 基本使用
+python main.py --directory ./papers
+
+# 只生成 Excel
+python main.py --directory ./papers --format excel
+
+# 自訂輸出位置
+python main.py --directory ./papers --output-dir ./results
+
+# 查看幫助
+python main.py --help
+
+═══════════════════════════════════════════════════════════════
+輸出文件 Output Files
+═══════════════════════════════════════════════════════════════
+
+所有輸出文件會保存在 output/ 目錄：
+
+✓ academic_catalog_YYYYMMDD_HHMMSS.xlsx  - Excel 報表
+✓ academic_catalog_YYYYMMDD_HHMMSS.html  - 網頁報告
+✓ academic_catalog_YYYYMMDD_HHMMSS.json  - JSON 數據
+✓ academic_catalog_YYYYMMDD_HHMMSS.csv   - CSV 文件
+
+═══════════════════════════════════════════════════════════════
+提升分類準確度（可選）Improve Classification (Optional)
+═══════════════════════════════════════════════════════════════
+
+使用 OpenAI API 可以大幅提升分類準確度：
+
+1. 註冊 OpenAI: https://platform.openai.com/
+2. 獲取 API 金鑰
+3. 編輯 .env 文件：
+   OPENAI_API_KEY=sk-your-key-here
+
+不配置也能用！系統會自動使用關鍵詞匹配（免費）
+
+═══════════════════════════════════════════════════════════════
+文檔資源 Documentation
+═══════════════════════════════════════════════════════════════
+
+📖 README_CN.md          - 完整中文說明
+📖 README.md             - English documentation
+📖 QUICKSTART.md         - 5分鐘快速上手
+📖 PROJECT_OVERVIEW.md   - 專案技術總覽
+📖 example_usage.py      - Python 使用範例
+
+═══════════════════════════════════════════════════════════════
+專案結構 Project Structure
+═══════════════════════════════════════════════════════════════
+
+CataBot/
+├── main.py              ← 主程式入口
+├── pdf_extractor.py     ← PDF 元數據提取
+├── web_crawler.py       ← 網頁爬蟲
+├── ai_classifier.py     ← AI 分類器
+├── catalog_generator.py ← 目錄生成器
+├── config.py            ← 配置文件
+├── test_demo.py         ← 演示程式
+├── requirements.txt     ← Python 依賴
+└── output/              ← 輸出目錄
+
+═══════════════════════════════════════════════════════════════
+常見問題 FAQ
+═══════════════════════════════════════════════════════════════
+
+Q: 沒有 API 金鑰可以用嗎？
+A: 可以！會自動使用關鍵詞分類（免費）
+
+Q: 支援中文論文嗎？
+A: 支援，但英文效果更好
+
+Q: 可以處理多少 PDF？
+A: 建議單次 < 1000 個
+
+Q: 分類不準確怎麼辦？
+A: 1) 使用 OpenAI API  2) 手動編輯輸出
+
+Q: 輸出在哪裡？
+A: output/ 目錄
+
+═══════════════════════════════════════════════════════════════
+需要幫助？Need Help?
+═══════════════════════════════════════════════════════════════
+
+1. 運行演示：run_demo.bat
+2. 查看文檔：README_CN.md
+3. 查看範例：example_usage.py
+
+═══════════════════════════════════════════════════════════════
+
+🚀 開始使用 CataBot！Start using CataBot now!
+
+第一次使用？建議：
+1. 運行 setup.bat 安裝
+2. 運行 run_demo.bat 看演示
+3. 用自己的 PDF 試試：python main.py --directory ./your_papers
+
+═══════════════════════════════════════════════════════════════

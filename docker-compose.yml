@@ -1,0 +1,54 @@
+version: '3.8'
+
+services:
+  catabot:
+    build: .
+    container_name: catabot
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./pdfs:/app/pdfs
+      - ./uploads:/app/uploads
+      - ./job_history:/app/job_history
+      - ./logs:/app/logs
+      - ./settings.json:/app/settings.json
+    environment:
+      - FLASK_ENV=production
+      - FLASK_DEBUG=0
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+    networks:
+      - catabot-network
+    healthcheck:
+      test: ["CMD", "python", "-c", "import requests; requests.get('http://localhost:5000')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  nginx:
+    image: nginx:alpine
+    container_name: catabot-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./static:/app/static:ro
+      - ./ssl:/etc/nginx/ssl:ro
+    depends_on:
+      - catabot
+    networks:
+      - catabot-network
+
+networks:
+  catabot-network:
+    driver: bridge
+
+volumes:
+  pdfs:
+  uploads:
+  job_history:
+  logs:

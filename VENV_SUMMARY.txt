@@ -1,0 +1,192 @@
+═══════════════════════════════════════════════════════════════
+        Virtual Environment Support - Summary
+═══════════════════════════════════════════════════════════════
+
+✅ ALL BATCH FILES NOW SUPPORT VIRTUAL ENVIRONMENTS!
+
+═══════════════════════════════════════════════════════════════
+WHAT CHANGED
+═══════════════════════════════════════════════════════════════
+
+Updated Batch Files:
+  ✅ setup.bat         - Auto-detects and uses venv
+  ✅ run_demo.bat      - Auto-detects and uses venv
+  ✅ run_webapp.bat    - Auto-detects and uses venv
+  ✅ create_venv.bat   - NEW! Creates virtual environment
+
+Updated Files:
+  ✅ .gitignore        - Added venv/, .venv/, uploads/
+  ✅ README_CN.md      - Added venv instructions
+
+New Documentation:
+  ✅ VIRTUAL_ENV_GUIDE.md - Complete venv guide
+  ✅ VENV_SUMMARY.txt     - This file
+
+═══════════════════════════════════════════════════════════════
+HOW IT WORKS
+═══════════════════════════════════════════════════════════════
+
+Automatic Detection:
+  1. Batch file runs
+  2. Checks if venv\Scripts\activate.bat exists
+  3. If yes → Activates virtual environment
+  4. If no → Checks .venv\Scripts\activate.bat
+  5. Proceeds with normal operation
+
+Supported venv Names:
+  • venv/     (recommended)
+  • .venv/    (alternative)
+
+═══════════════════════════════════════════════════════════════
+QUICK START
+═══════════════════════════════════════════════════════════════
+
+Create Virtual Environment:
+  create_venv.bat
+
+That's it! All batch files now automatically use it.
+
+═══════════════════════════════════════════════════════════════
+USAGE EXAMPLES
+═══════════════════════════════════════════════════════════════
+
+Example 1: First Time Setup
+  1. create_venv.bat           # Creates venv + installs packages
+  2. run_webapp.bat            # Auto-activates venv, runs app
+
+Example 2: Existing Project
+  1. create_venv.bat           # One-time setup
+  2. run_demo.bat              # Auto-uses venv
+  3. run_webapp.bat            # Auto-uses venv
+
+Example 3: Manual Activation
+  1. venv\Scripts\activate.bat # Manual activation
+  2. python main.py            # Run directly
+  3. deactivate                # When done
+
+═══════════════════════════════════════════════════════════════
+BENEFITS
+═══════════════════════════════════════════════════════════════
+
+✅ Isolated Dependencies
+   - No conflicts with system Python
+   - Clean project environment
+
+✅ Automatic Activation
+   - No need to remember to activate
+   - Batch files handle it automatically
+
+✅ Easy Setup
+   - One command: create_venv.bat
+   - Everything configured automatically
+
+✅ Version Control Friendly
+   - venv/ is gitignored
+   - Only requirements.txt is tracked
+
+✅ Team Collaboration
+   - Everyone gets same environment
+   - Reproducible setup
+
+═══════════════════════════════════════════════════════════════
+VERIFICATION
+═══════════════════════════════════════════════════════════════
+
+Check if venv is Active:
+  - Look for (venv) prefix in command prompt
+  - Run: where python
+    Should show: C:\AIapps\CataBot\venv\Scripts\python.exe
+
+Check Installed Packages:
+  venv\Scripts\activate.bat
+  pip list
+
+═══════════════════════════════════════════════════════════════
+BATCH FILE BEHAVIOR
+═══════════════════════════════════════════════════════════════
+
+WITHOUT Virtual Environment:
+  run_webapp.bat
+  → Uses system Python
+  → Runs normally
+
+WITH Virtual Environment:
+  run_webapp.bat
+  → Detects venv/
+  → Activates automatically
+  → Shows: "🔵 Activating virtual environment..."
+  → Uses venv Python
+  → Runs normally
+
+═══════════════════════════════════════════════════════════════
+MIGRATION GUIDE
+═══════════════════════════════════════════════════════════════
+
+From Global Installation:
+  1. Run: create_venv.bat
+  2. Done! All batch files now use venv
+
+From Existing venv:
+  - No changes needed
+  - Batch files will detect it automatically
+
+═══════════════════════════════════════════════════════════════
+TROUBLESHOOTING
+═══════════════════════════════════════════════════════════════
+
+venv Not Detected?
+  → Ensure folder is named "venv" or ".venv"
+  → Check if venv\Scripts\activate.bat exists
+
+Want to Use System Python?
+  → Simply don't create venv
+  → Batch files will use system Python
+
+Recreate venv?
+  → Delete venv folder
+  → Run: create_venv.bat
+
+═══════════════════════════════════════════════════════════════
+FILES MODIFIED
+═══════════════════════════════════════════════════════════════
+
+setup.bat:
+  + Auto-detects venv (lines 10-21)
+
+run_demo.bat:
+  + Auto-detects venv (lines 8-17)
+
+run_webapp.bat:
+  + Auto-detects venv (lines 9-20)
+
+.gitignore:
+  + venv/
+  + .venv/
+  + uploads/
+  + demo_output/
+
+═══════════════════════════════════════════════════════════════
+NEXT STEPS
+═══════════════════════════════════════════════════════════════
+
+1. Create Virtual Environment:
+   create_venv.bat
+
+2. Test Automatic Detection:
+   run_demo.bat
+   (Should show "🔵 Activating virtual environment...")
+
+3. Use Normally:
+   run_webapp.bat
+   python main.py --directory ./papers
+
+4. Read Full Guide:
+   VIRTUAL_ENV_GUIDE.md
+
+═══════════════════════════════════════════════════════════════
+
+🎉 Virtual environment support is now fully integrated!
+
+All batch files automatically detect and use venv if present.
+
+═══════════════════════════════════════════════════════════════

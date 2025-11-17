@@ -1,0 +1,14 @@
+{
+  "job_id": "crawl_1",
+  "job_type": "crawl",
+  "status": "cancelled",
+  "progress": 90,
+  "total": 991,
+  "current_file": "Downloaded: 9808029.pdf",
+  "results": [],
+  "output_files": {},
+  "error": "Cancelled by user",
+  "start_time": "2025-11-17T13:54:10.871135",
+  "end_time": "2025-11-17T13:54:21.094327",
+  "source_url": "https://www.cuhk.edu.hk/ics/21c/zh/online/main.html"
+}

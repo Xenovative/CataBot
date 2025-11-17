@@ -1,0 +1,159 @@
+═══════════════════════════════════════════════════════════════
+              CataBot Web Application - Quick Start
+═══════════════════════════════════════════════════════════════
+
+🌐 NEW: Beautiful Web Interface Available!
+
+═══════════════════════════════════════════════════════════════
+LAUNCH WEB APP
+═══════════════════════════════════════════════════════════════
+
+Windows:
+  Double-click: run_webapp.bat
+
+Or run manually:
+  python app.py
+
+Then open browser:
+  http://localhost:5000
+
+═══════════════════════════════════════════════════════════════
+THREE WAYS TO PROCESS PAPERS
+═══════════════════════════════════════════════════════════════
+
+1. 📤 UPLOAD FILES
+   - Drag & drop PDFs
+   - Multiple files supported
+   - Real-time progress
+   - Instant download
+
+2. 🌐 CRAWL WEBSITE
+   - Enter journal URL
+   - Auto-find PDFs
+   - Batch download
+   - Process automatically
+
+3. 📁 LOCAL DIRECTORY
+   - Enter folder path
+   - Recursive scan
+   - Server-side processing
+   - No upload needed
+
+═══════════════════════════════════════════════════════════════
+FEATURES
+═══════════════════════════════════════════════════════════════
+
+✅ Beautiful gradient UI
+✅ Drag & drop upload
+✅ Real-time progress bar
+✅ Live status updates
+✅ One-click downloads
+✅ Subject statistics
+✅ Mobile responsive
+✅ Multiple jobs support
+
+═══════════════════════════════════════════════════════════════
+QUICK EXAMPLE
+═══════════════════════════════════════════════════════════════
+
+1. Run: run_webapp.bat
+2. Open: http://localhost:5000
+3. Drag PDFs into upload area
+4. Click "Start Processing"
+5. Watch progress bar
+6. Download results (Excel/HTML/JSON/CSV)
+
+═══════════════════════════════════════════════════════════════
+OUTPUT FORMATS
+═══════════════════════════════════════════════════════════════
+
+Choose from:
+  • All Formats (default) - Get everything
+  • Excel Only - Spreadsheet analysis
+  • HTML Only - Web viewing
+  • JSON Only - API integration
+  • CSV Only - Data import
+
+═══════════════════════════════════════════════════════════════
+SYSTEM STATUS
+═══════════════════════════════════════════════════════════════
+
+The web interface shows:
+  ✅ OpenAI API status (configured or free mode)
+  📊 Number of subject categories
+  ⚙️ System configuration
+
+═══════════════════════════════════════════════════════════════
+ADVANTAGES OF WEB INTERFACE
+═══════════════════════════════════════════════════════════════
+
+vs Command Line:
+  ✅ No commands to remember
+  ✅ Visual progress tracking
+  ✅ Easier file selection
+  ✅ Instant results preview
+  ✅ One-click downloads
+  ✅ Better for non-technical users
+
+vs Desktop Apps:
+  ✅ No installation needed
+  ✅ Cross-platform (any browser)
+  ✅ Access from anywhere
+  ✅ Mobile friendly
+  ✅ Easy to share
+
+═══════════════════════════════════════════════════════════════
+DOCUMENTATION
+═══════════════════════════════════════════════════════════════
+
+📖 WEBAPP_GUIDE.md       - Complete web app guide
+📖 WEBAPP_FEATURES.md    - Feature showcase
+📖 README_CN.md          - Chinese documentation
+📖 README.md             - Full documentation
+
+═══════════════════════════════════════════════════════════════
+TROUBLESHOOTING
+═══════════════════════════════════════════════════════════════
+
+Port already in use?
+  → Change port in app.py (line 335)
+
+Flask not found?
+  → pip install flask flask-cors werkzeug
+
+Can't access from other devices?
+  → Use http://YOUR_IP:5000
+
+Upload fails?
+  → Check file size (max 500MB)
+  → Ensure uploads/ folder exists
+
+═══════════════════════════════════════════════════════════════
+TIPS
+═══════════════════════════════════════════════════════════════
+
+💡 Bookmark http://localhost:5000 for quick access
+💡 Can process multiple batches simultaneously
+💡 Background processing - safe to close browser
+💡 Check green checkmark for OpenAI status
+💡 Use "All Formats" for maximum flexibility
+
+═══════════════════════════════════════════════════════════════
+NEXT STEPS
+═══════════════════════════════════════════════════════════════
+
+1. Launch: run_webapp.bat
+2. Try upload with test PDFs
+3. Explore all three modes
+4. Download results
+5. Configure OpenAI API (optional)
+6. Share with your team!
+
+═══════════════════════════════════════════════════════════════
+
+🚀 Start using CataBot Web App now!
+
+Launch: run_webapp.bat
+Access: http://localhost:5000
+
+═══════════════════════════════════════════════════════════════

@@ -1,0 +1,47 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+.venv/
+env/
+ENV/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Application data
+pdfs/
+uploads/
+job_history/
+logs/
+*.log
+
+# Git
+.git/
+.gitignore
+
+# Documentation
+*.md
+!README.md
+
+# Deployment
+deploy.sh
+docker-compose.yml
+.env
+.env.example
+
+# Test files
+tests/
+test_*.py
+*_test.py
