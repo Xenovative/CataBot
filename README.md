@@ -201,15 +201,69 @@ CataBot/
 └── pdfs/                 # 下載的 PDF（自動創建）
 ```
 
+## 部署 Deployment
+
+### Linux 服務器部署 Linux Server Deployment
+
+快速部署到 Linux 服務器（Ubuntu/Debian）：
+
+```bash
+# 一鍵部署
+chmod +x deploy.sh
+sudo ./deploy.sh
+```
+
+部署腳本會自動：
+- 安裝所有依賴
+- 創建 systemd 服務
+- 配置 Nginx 反向代理
+- 設置日誌輪換和備份
+
+### 部署後驗證 Post-Deployment Verification
+
+```bash
+# 運行驗證腳本
+chmod +x verify_deployment.sh
+sudo ./verify_deployment.sh
+
+# 運行診斷工具
+chmod +x diagnose.sh
+sudo ./diagnose.sh
+```
+
+### 部署文檔 Deployment Documentation
+
+- **[DEPLOYMENT.md](DEPLOYMENT.md)** - 完整部署指南
+- **[DEPLOYMENT_FIXES.md](DEPLOYMENT_FIXES.md)** - 部署問題修復說明
+- **[QUICK_REFERENCE.md](QUICK_REFERENCE.md)** - 常用命令快速參考
+
+### 服務管理 Service Management
+
+```bash
+# 啟動服務
+sudo systemctl start catabot
+
+# 查看狀態
+sudo systemctl status catabot
+
+# 查看日誌
+sudo journalctl -u catabot -f
+```
+
+更多命令請參考 [QUICK_REFERENCE.md](QUICK_REFERENCE.md)
+
 ## 技術棧 Tech Stack
 
 - **Python 3.8+**: 主要程式語言
+- **Flask**: Web 框架
 - **PyPDF2 & pdfplumber**: PDF 處理
 - **BeautifulSoup4**: HTML 解析
 - **aiohttp**: 異步 HTTP 請求
 - **OpenAI API**: AI 分類（可選）
 - **pandas**: 數據處理
 - **openpyxl**: Excel 生成
+- **Nginx**: 反向代理（生產環境）
+- **systemd**: 服務管理（Linux）
 
 ## 常見問題 FAQ
 

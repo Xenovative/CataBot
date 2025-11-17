@@ -132,14 +132,19 @@ After=network.target
 Type=simple
 User=catabot
 WorkingDirectory=/opt/catabot
-Environment="PATH=/opt/catabot/venv/bin"
-ExecStart=/opt/catabot/venv/bin/python /opt/catabot/app.py
+Environment="PATH=/opt/catabot/venv/bin:/usr/local/bin:/usr/bin:/bin"
+EnvironmentFile=/opt/catabot/.env
+ExecStart=/opt/catabot/venv/bin/python3 /opt/catabot/app.py
 Restart=always
 RestartSec=10
+KillMode=mixed
+KillSignal=SIGTERM
+TimeoutStopSec=30
 
 # Logging
 StandardOutput=append:/opt/catabot/logs/app.log
 StandardError=append:/opt/catabot/logs/error.log
+SyslogIdentifier=catabot
 
 [Install]
 WantedBy=multi-user.target
@@ -296,16 +301,34 @@ ps aux | grep python
 
 ```bash
 # Check logs
-sudo journalctl -u catabot -n 50
+sudo journalctl -u catabot -n 50 --no-pager
+
+# Check service status
+sudo systemctl status catabot
 
 # Check permissions
 ls -la /opt/catabot
+ls -la /opt/catabot/.env
 
-# Test manually
+# Verify .env file exists and is readable
+sudo cat /opt/catabot/.env
+
+# Test manually as the catabot user
 sudo -u catabot bash
 cd /opt/catabot
 source venv/bin/activate
-python app.py
+python3 app.py
+
+# If manual test works but service doesn't, check:
+# 1. Environment file is properly loaded
+sudo systemctl show catabot | grep Environment
+
+# 2. Python dependencies are installed in venv
+/opt/catabot/venv/bin/python3 -c "import flask; print('Flask OK')"
+
+# 3. Reload systemd after any service file changes
+sudo systemctl daemon-reload
+sudo systemctl restart catabot
 ```
 
 ### Port Already in Use

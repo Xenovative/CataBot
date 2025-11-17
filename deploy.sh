@@ -158,14 +158,19 @@ After=network.target
 Type=simple
 User=$APP_USER
 WorkingDirectory=$APP_DIR
-Environment="PATH=$APP_DIR/venv/bin"
-ExecStart=$APP_DIR/venv/bin/python $APP_DIR/app.py
+Environment="PATH=$APP_DIR/venv/bin:/usr/local/bin:/usr/bin:/bin"
+EnvironmentFile=$APP_DIR/.env
+ExecStart=$APP_DIR/venv/bin/python3 $APP_DIR/app.py
 Restart=always
 RestartSec=10
+KillMode=mixed
+KillSignal=SIGTERM
+TimeoutStopSec=30
 
 # Logging
 StandardOutput=append:$APP_DIR/logs/app.log
 StandardError=append:$APP_DIR/logs/error.log
+SyslogIdentifier=catabot
 
 [Install]
 WantedBy=multi-user.target

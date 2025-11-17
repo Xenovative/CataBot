@@ -883,12 +883,22 @@ def test_api():
 
 
 if __name__ == '__main__':
+    # Load environment variables
+    from dotenv import load_dotenv
+    load_dotenv()
+    
+    # Get configuration from environment
+    host = os.getenv('HOST', '0.0.0.0')
+    port = int(os.getenv('PORT', 5000))
+    debug = os.getenv('FLASK_DEBUG', '0') == '1'
+    
     print("\n" + "="*60)
     print("🚀 CataBot Web Application Starting...")
     print("="*60)
-    print(f"\n📍 Access the application at: http://localhost:5000")
-    print(f"📊 API endpoint: http://localhost:5000/api")
+    print(f"\n📍 Access the application at: http://{host}:{port}")
+    print(f"📊 API endpoint: http://{host}:{port}/api")
+    print(f"🔧 Mode: {'Development' if debug else 'Production'}")
     print(f"\n⚙️  OpenAI API: {'✅ Configured' if config.OPENAI_API_KEY else '⚠️  Not configured (using keyword matching)'}")
     print("\n" + "="*60 + "\n")
     
-    app.run(debug=True, host='0.0.0.0', port=5000, threaded=True)
+    app.run(debug=debug, host=host, port=port, threaded=True)
