@@ -52,14 +52,19 @@ cd c:\AIapps\CataBot
 pip install -r requirements.txt
 ```
 
-3. **配置 API 金鑰（可選）**
+3. **配置環境變數（推薦）**
 ```bash
 # 複製環境變數範本
 copy .env.example .env
 
-# 編輯 .env 文件，添加你的 OpenAI API 金鑰
-# OPENAI_API_KEY=sk-your-key-here
+# 編輯 .env 文件
+notepad .env
 ```
+
+編輯以下內容：
+- `SECRET_KEY`: 修改為隨機密鑰（用於 Flask session）
+- `OPENAI_API_KEY`: 添加你的 OpenAI API 金鑰（可選）
+- `PORT`: 修改端口號（默認 5000）
 
 > **注意**: 如果不配置 API 金鑰，系統會使用關鍵詞匹配進行分類（準確度較低但免費）
 

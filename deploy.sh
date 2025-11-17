@@ -149,6 +149,10 @@ print_status "Permissions set"
 
 # Step 8: Create systemd service
 echo -e "${YELLOW}Step 8: Creating systemd service...${NC}"
+
+# Make start.sh executable
+chmod +x $APP_DIR/start.sh
+
 cat > /etc/systemd/system/${APP_NAME}.service << EOF
 [Unit]
 Description=CataBot - Academic Paper Cataloging System
@@ -159,8 +163,8 @@ Type=simple
 User=$APP_USER
 WorkingDirectory=$APP_DIR
 Environment="PATH=$APP_DIR/venv/bin:/usr/local/bin:/usr/bin:/bin"
-EnvironmentFile=$APP_DIR/.env
-ExecStart=$APP_DIR/venv/bin/python3 $APP_DIR/app.py
+EnvironmentFile=-$APP_DIR/.env
+ExecStart=$APP_DIR/start.sh
 Restart=always
 RestartSec=10
 KillMode=mixed
@@ -219,31 +223,44 @@ rm -f /etc/nginx/sites-enabled/default
 nginx -t && systemctl reload nginx
 print_status "Nginx configured"
 
-# Step 10: Create environment file template
+# Step 10: Create environment file
 echo -e "${YELLOW}Step 10: Creating environment configuration...${NC}"
 if [ ! -f "$APP_DIR/.env" ]; then
-    cat > $APP_DIR/.env << EOF
+    # Copy from .env.example if it exists
+    if [ -f "$APP_DIR/.env.example" ]; then
+        cp $APP_DIR/.env.example $APP_DIR/.env
+        print_status "Copied .env from .env.example"
+        
+        # Replace placeholder values
+        sed -i "s/change-this-to-a-random-secret-key/$(openssl rand -hex 32)/" $APP_DIR/.env
+        sed -i "s/PORT=5000/PORT=$PORT/" $APP_DIR/.env
+        print_status "Generated secure SECRET_KEY"
+    else
+        # Create from scratch if .env.example doesn't exist
+        cat > $APP_DIR/.env << EOF
 # CataBot Configuration
 FLASK_ENV=production
 FLASK_DEBUG=0
 SECRET_KEY=$(openssl rand -hex 32)
+
+# Server Configuration
+HOST=0.0.0.0
+PORT=$PORT
 
 # OpenAI API (optional)
 OPENAI_API_KEY=
 
 # Anthropic API (optional)
 ANTHROPIC_API_KEY=
-
-# Server Configuration
-HOST=0.0.0.0
-PORT=$PORT
 EOF
+        print_status "Environment file created"
+    fi
+    
     chown $APP_USER:$APP_USER $APP_DIR/.env
     chmod 600 $APP_DIR/.env
-    print_status "Environment file created"
     print_info "Edit $APP_DIR/.env to add your API keys"
 else
-    print_info "Environment file already exists"
+    print_info "Environment file already exists, skipping"
 fi
 
 # Step 11: Enable and start services

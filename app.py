@@ -12,6 +12,13 @@ from flask import Flask, render_template, request, jsonify, send_file, send_from
 from werkzeug.utils import secure_filename
 import logging
 
+# Load environment variables early
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    logging.warning("python-dotenv not installed, using system environment variables only")
+
 from pdf_extractor import PDFExtractor
 from web_crawler import AcademicCrawler
 from pdf_extractor import PDFExtractor
@@ -26,7 +33,7 @@ logger = logging.getLogger(__name__)
 
 # Initialize Flask app
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'catabot-secret-key-change-in-production'
+app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'catabot-secret-key-change-in-production')
 app.config['UPLOAD_FOLDER'] = 'uploads'
 app.config['MAX_CONTENT_LENGTH'] = 500 * 1024 * 1024  # 500MB max
 
@@ -883,10 +890,6 @@ def test_api():
 
 
 if __name__ == '__main__':
-    # Load environment variables
-    from dotenv import load_dotenv
-    load_dotenv()
-    
     # Get configuration from environment
     host = os.getenv('HOST', '0.0.0.0')
     port = int(os.getenv('PORT', 5000))

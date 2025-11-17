@@ -85,11 +85,14 @@ sudo -u catabot bash -c "source venv/bin/activate && pip install --upgrade pip &
 ### Step 5: Configure Application
 
 ```bash
-# Create environment file
+# Copy from example (recommended)
+sudo cp /opt/catabot/.env.example /opt/catabot/.env
+
+# Or create manually
 sudo nano /opt/catabot/.env
 ```
 
-Add the following:
+Add/edit the following:
 
 ```bash
 # Flask Configuration
@@ -296,6 +299,8 @@ ps aux | grep python
 ```
 
 ## Troubleshooting
+
+> **📖 For detailed troubleshooting of service failures, see [TROUBLESHOOTING.md](TROUBLESHOOTING.md)**
 
 ### Service Won't Start
 
