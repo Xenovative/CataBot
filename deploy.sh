@@ -96,7 +96,18 @@ print_status "System updated"
 
 # Step 2: Install dependencies
 echo -e "${YELLOW}Step 2: Installing dependencies...${NC}"
-PACKAGES="python3 python3-pip python3-venv git poppler-utils tesseract-ocr libtesseract-dev libpoppler-cpp-dev"
+
+# Core dependencies
+PACKAGES="python3 python3-pip python3-venv git"
+
+# PDF processing dependencies
+PACKAGES="$PACKAGES poppler-utils tesseract-ocr libtesseract-dev libpoppler-cpp-dev"
+
+# Vision extraction dependencies
+PACKAGES="$PACKAGES libjpeg-dev zlib1g-dev"
+
+# Playwright dependencies (for JavaScript rendering)
+PACKAGES="$PACKAGES libnss3 libnspr4 libatk1.0-0 libatk-bridge2.0-0 libcups2 libdrm2 libxkbcommon0 libxcomposite1 libxdamage1 libxfixes3 libxrandr2 libgbm1 libasound2"
 
 # Add Nginx if requested
 if [ "$SETUP_NGINX" = "y" ]; then
@@ -104,7 +115,7 @@ if [ "$SETUP_NGINX" = "y" ]; then
 fi
 
 apt-get install -y $PACKAGES
-print_status "Dependencies installed"
+print_status "System dependencies installed"
 
 # Step 3: Create application user
 echo -e "${YELLOW}Step 3: Creating application user...${NC}"
@@ -122,6 +133,9 @@ mkdir -p $APP_DIR/pdfs
 mkdir -p $APP_DIR/uploads
 mkdir -p $APP_DIR/job_history
 mkdir -p $APP_DIR/logs
+mkdir -p $APP_DIR/output
+mkdir -p $APP_DIR/templates
+mkdir -p $APP_DIR/static
 print_status "Directories created"
 
 # Step 5: Copy application files
@@ -137,7 +151,14 @@ python3 -m venv venv
 source venv/bin/activate
 pip install --upgrade pip
 pip install -r requirements.txt
-print_status "Virtual environment created and dependencies installed"
+print_status "Python dependencies installed"
+
+# Install Playwright browsers
+echo -e "${YELLOW}Installing Playwright browsers...${NC}"
+python3 -m playwright install chromium
+print_status "Playwright browsers installed"
+
+print_status "Virtual environment setup complete"
 
 # Step 7: Set permissions
 echo -e "${YELLOW}Step 7: Setting permissions...${NC}"

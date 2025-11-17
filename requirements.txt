@@ -13,13 +13,10 @@ Flask>=2.3.0
 Flask-CORS>=4.0.0
 Werkzeug>=2.3.0
 
-# Optional: For JavaScript-rendered sites
-# playwright>=1.40.0
-# Install with: pip install playwright && playwright install
+# For vision-based metadata extraction
+Pillow>=10.0.0
+pdf2image>=1.16.0
+PyMuPDF>=1.23.0
 
-# Optional: For vision-based metadata extraction
-# Pillow>=10.0.0
-# pdf2image>=1.16.0
-# PyMuPDF>=1.23.0
-# Install with: pip install Pillow pdf2image PyMuPDF
-# Note: pdf2image requires poppler-utils (Windows: download from https://github.com/oschwartz10612/poppler-windows/releases/)
+# For JavaScript-rendered sites
+playwright>=1.40.0

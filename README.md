@@ -219,12 +219,21 @@ sudo ./deploy.sh
 ```
 
 部署腳本會自動：
-- 安裝所有依賴
-- 創建 systemd 服務
-- 可選配置 Nginx 反向代理（默認跳過）
-- 設置日誌輪換和備份
+- ✅ 安裝**所有**系統依賴（包括 Playwright、Vision 提取等）
+- ✅ 安裝**所有** Python 套件（包括可選功能）
+- ✅ 創建 systemd 服務
+- ✅ 配置完整目錄結構
+- ⚠️ 可選配置 Nginx 反向代理（默認跳過）
+- ✅ 設置日誌輪換和備份
 
-> **注意**: Nginx 現在是可選的。如果遇到 Nginx 問題，可以選擇跳過，應用將直接在指定端口運行。
+> **🎉 新功能**: 部署腳本現在會安裝所有功能所需的依賴！
+> - Vision 提取（使用 OpenAI Vision API 提高準確度）
+> - JavaScript 網站爬取（支持動態網站）
+> - 完整的 PDF 處理能力
+> 
+> 詳見 [FULL_INSTALLATION.md](FULL_INSTALLATION.md)
+
+> **注意**: Nginx 是可選的。如果遇到問題，可以跳過，應用將直接在指定端口運行。
 > 詳見 [DEPLOYMENT_NO_NGINX.md](DEPLOYMENT_NO_NGINX.md)
 
 ### 部署後驗證 Post-Deployment Verification
@@ -241,6 +250,7 @@ sudo ./diagnose.sh
 
 ### 部署文檔 Deployment Documentation
 
+- **[FULL_INSTALLATION.md](FULL_INSTALLATION.md)** - 完整功能安裝說明（推薦閱讀）
 - **[DEPLOYMENT.md](DEPLOYMENT.md)** - 完整部署指南
 - **[DEPLOYMENT_NO_NGINX.md](DEPLOYMENT_NO_NGINX.md)** - 無 Nginx 部署指南（推薦新手）
 - **[DEPLOYMENT_FIXES.md](DEPLOYMENT_FIXES.md)** - 部署問題修復說明

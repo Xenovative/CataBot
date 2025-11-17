@@ -31,13 +31,18 @@ echo -e "${YELLOW}[2/8] Checking Python dependencies...${NC}"
 if [ -f "$APP_DIR/venv/bin/python3" ]; then
     cd $APP_DIR
     sudo -u catabot bash -c "source venv/bin/activate && pip install -q -r requirements.txt"
-    echo "✓ Dependencies checked/installed"
+    echo "✓ Python dependencies checked/installed"
+    
+    # Install Playwright browsers
+    sudo -u catabot bash -c "source venv/bin/activate && python3 -m playwright install chromium" 2>/dev/null
+    echo "✓ Playwright browsers checked"
 else
     echo -e "${RED}✗ Virtual environment not found!${NC}"
     echo "Creating new virtual environment..."
     cd $APP_DIR
     sudo -u catabot python3 -m venv venv
     sudo -u catabot bash -c "source venv/bin/activate && pip install -r requirements.txt"
+    sudo -u catabot bash -c "source venv/bin/activate && python3 -m playwright install chromium"
     echo "✓ Virtual environment recreated"
 fi
 echo ""
@@ -72,15 +77,22 @@ else
 fi
 echo ""
 
-echo -e "${YELLOW}[4/8] Fixing permissions...${NC}"
+echo -e "${YELLOW}[4/8] Fixing permissions and directories...${NC}"
+
+# Ensure all required directories exist
+for dir in pdfs uploads job_history logs output templates static; do
+    mkdir -p $APP_DIR/$dir
+done
+
 chown -R catabot:catabot $APP_DIR
 chmod -R 755 $APP_DIR
-chmod -R 775 $APP_DIR/pdfs 2>/dev/null || mkdir -p $APP_DIR/pdfs && chmod 775 $APP_DIR/pdfs
-chmod -R 775 $APP_DIR/uploads 2>/dev/null || mkdir -p $APP_DIR/uploads && chmod 775 $APP_DIR/uploads
-chmod -R 775 $APP_DIR/job_history 2>/dev/null || mkdir -p $APP_DIR/job_history && chmod 775 $APP_DIR/job_history
-chmod -R 775 $APP_DIR/logs 2>/dev/null || mkdir -p $APP_DIR/logs && chmod 775 $APP_DIR/logs
-chmod 600 $APP_DIR/.env
-echo "✓ Permissions fixed"
+chmod -R 775 $APP_DIR/pdfs
+chmod -R 775 $APP_DIR/uploads
+chmod -R 775 $APP_DIR/job_history
+chmod -R 775 $APP_DIR/logs
+chmod -R 775 $APP_DIR/output
+chmod 600 $APP_DIR/.env 2>/dev/null
+echo "✓ Permissions and directories fixed"
 echo ""
 
 echo -e "${YELLOW}[5/8] Checking for port conflicts...${NC}"
