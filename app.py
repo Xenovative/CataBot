@@ -80,6 +80,7 @@ class ProcessingJob:
         self.start_time = datetime.now()
         self.end_time = None
         self.source_url = source_url  # Store original URL for re-fetching
+        self.periodical_summary = None  # Summary/abstract of the periodical issue
     
     def to_dict(self):
         """Convert job to dictionary for JSON serialization"""
@@ -95,7 +96,8 @@ class ProcessingJob:
             'error': self.error,
             'start_time': self.start_time.isoformat(),
             'end_time': self.end_time.isoformat() if self.end_time else None,
-            'source_url': self.source_url
+            'source_url': self.source_url,
+            'periodical_summary': self.periodical_summary
         }
     
     @staticmethod
@@ -111,6 +113,7 @@ class ProcessingJob:
         job.error = data['error']
         job.start_time = datetime.fromisoformat(data['start_time'])
         job.end_time = datetime.fromisoformat(data['end_time']) if data['end_time'] else None
+        job.periodical_summary = data.get('periodical_summary')
         return job
 
 
@@ -260,9 +263,15 @@ def process_pdfs_background(job_id, pdf_files, output_format='all', source_url=N
             save_job_to_history(job)
             return
         
+        # Generate periodical summary
+        job.current_file = 'Generating periodical summary...'
+        periodical_summary = classifier.generate_periodical_summary(papers)
+        job.periodical_summary = periodical_summary
+        logger.info(f"Generated periodical summary: {periodical_summary.get('key_themes', [])}")
+        
         # Generate catalog
         job.current_file = 'Generating catalog...'
-        output_files = catalog_generator.generate_catalog(papers, format=output_format)
+        output_files = catalog_generator.generate_catalog(papers, format=output_format, periodical_summary=periodical_summary)
         job.output_files = output_files
         
         job.status = 'completed'
@@ -544,6 +553,10 @@ def job_status(job_id):
             subject = paper.get('classification', {}).get('primary_subject', 'Other')
             subject_counts[subject] = subject_counts.get(subject, 0) + 1
         response['subject_distribution'] = subject_counts
+        
+        # Include periodical summary if available
+        if job.periodical_summary:
+            response['periodical_summary'] = job.periodical_summary
     
     return jsonify(response)
 
@@ -672,6 +685,10 @@ def get_history_job(job_id):
             subject_counts[subject] = subject_counts.get(subject, 0) + 1
         response['subject_distribution'] = subject_counts
     
+    # Include periodical summary if available
+    if job.periodical_summary:
+        response['periodical_summary'] = job.periodical_summary
+    
     return jsonify(response)
 
 
@@ -782,9 +799,14 @@ def reclassify_background(job_id, papers, output_format='all'):
             save_job_to_history(job)
             return
         
+        # Generate periodical summary
+        job.current_file = 'Generating periodical summary...'
+        periodical_summary = classifier.generate_periodical_summary(reclassified_papers)
+        job.periodical_summary = periodical_summary
+        
         # Generate new catalog
         job.current_file = 'Generating catalog...'
-        output_files = catalog_generator.generate_catalog(reclassified_papers, format=output_format)
+        output_files = catalog_generator.generate_catalog(reclassified_papers, format=output_format, periodical_summary=periodical_summary)
         job.output_files = output_files
         
         job.status = 'completed'

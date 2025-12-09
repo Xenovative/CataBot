@@ -89,6 +89,10 @@ const translations = {
         'results_download_csv': '📥 Download CSV',
         'results_subject_title': 'Subject Distribution:',
         'results_reset_button': '🔄 Process More Files',
+        'results_summary_title': 'Periodical Summary',
+        'results_summary_journal': 'Journal',
+        'results_summary_issue': 'Issue Info',
+        'results_summary_themes': 'Key Themes',
         
         // Config
         'config_title': '⚙️ System Configuration',
@@ -233,6 +237,10 @@ const translations = {
         'results_download_csv': '📥 下載 CSV',
         'results_subject_title': '學科分布：',
         'results_reset_button': '🔄 處理更多檔案',
+        'results_summary_title': '期刊摘要',
+        'results_summary_journal': '期刊',
+        'results_summary_issue': '期號資訊',
+        'results_summary_themes': '主要主題',
         
         // Config
         'config_title': '⚙️ 系統配置',

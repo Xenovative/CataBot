@@ -95,8 +95,17 @@ class CataBot:
             logger.warning("No papers to catalog")
             return
         
+        # Generate periodical summary
+        logger.info("Generating periodical summary...")
+        periodical_summary = self.classifier.generate_periodical_summary(papers)
+        
+        if periodical_summary.get('summary'):
+            logger.info(f"Summary generated: {periodical_summary.get('key_themes', [])}")
+        
         logger.info(f"Generating catalog for {len(papers)} papers...")
-        output_files = self.catalog_generator.generate_catalog(papers, format=output_format)
+        output_files = self.catalog_generator.generate_catalog(
+            papers, format=output_format, periodical_summary=periodical_summary
+        )
         
         logger.info("Catalog generation complete!")
         logger.info("Output files:")

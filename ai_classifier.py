@@ -226,3 +226,155 @@ Respond in JSON format:
             results.append(paper)
         
         return results
+    
+    def generate_periodical_summary(self, papers: List[Dict], journal_name: str = None, issue_info: str = None) -> Dict:
+        """Generate a brief summary/abstract of the entire periodical issue"""
+        
+        if not papers:
+            return {
+                'summary': 'No papers available for summary.',
+                'key_themes': [],
+                'method': 'none'
+            }
+        
+        # Extract journal info from papers if not provided
+        if not journal_name:
+            journals = [p.get('journal', '') for p in papers if p.get('journal') and p.get('journal') not in ['N/A', 'Unknown', '未知']]
+            journal_name = journals[0] if journals else 'Academic Journal'
+        
+        if not issue_info:
+            # Try to construct issue info from papers
+            years = [p.get('year', '') for p in papers if p.get('year') and p.get('year') not in ['N/A', 'Unknown']]
+            volumes = [p.get('volume', '') for p in papers if p.get('volume') and p.get('volume') not in ['N/A', 'Unknown']]
+            issues = [p.get('issue', '') for p in papers if p.get('issue') and p.get('issue') not in ['N/A', 'Unknown']]
+            
+            parts = []
+            if years:
+                parts.append(f"Year: {years[0]}")
+            if volumes:
+                parts.append(f"Vol. {volumes[0]}")
+            if issues:
+                parts.append(f"Issue {issues[0]}")
+            issue_info = ', '.join(parts) if parts else ''
+        
+        if self.client:
+            return self._generate_summary_with_ai(papers, journal_name, issue_info)
+        else:
+            return self._generate_summary_fallback(papers, journal_name, issue_info)
+    
+    def _generate_summary_with_ai(self, papers: List[Dict], journal_name: str, issue_info: str) -> Dict:
+        """Use OpenAI API to generate periodical summary"""
+        try:
+            # Prepare paper list for the prompt
+            paper_list = []
+            for i, paper in enumerate(papers[:30], 1):  # Limit to 30 papers to avoid token limits
+                title = paper.get('title', 'Unknown')
+                authors = paper.get('authors', 'Unknown')
+                subject = paper.get('classification', {}).get('primary_subject', 'Unknown')
+                abstract = paper.get('abstract', '')[:200] if paper.get('abstract') else ''
+                
+                entry = f"{i}. \"{title}\" by {authors} [{subject}]"
+                if abstract:
+                    entry += f"\n   Abstract excerpt: {abstract}..."
+                paper_list.append(entry)
+            
+            papers_text = '\n'.join(paper_list)
+            
+            prompt = f"""You are an academic editor writing a brief editorial summary for a journal issue.
+
+Journal: {journal_name}
+{f'Issue Info: {issue_info}' if issue_info else ''}
+Total Papers: {len(papers)}
+
+Papers in this issue:
+{papers_text}
+
+Write a concise editorial summary (150-250 words) that:
+1. Highlights the main themes and topics covered in this issue
+2. Notes any notable contributions or trends
+3. Provides context for the collection as a whole
+
+Also identify 3-5 key themes/topics.
+
+Respond in JSON format:
+{{
+    "summary": "Your editorial summary here...",
+    "key_themes": ["theme1", "theme2", "theme3"],
+    "notable_papers": ["title of notable paper 1", "title of notable paper 2"]
+}}"""
+
+            response = self.client.chat.completions.create(
+                model="gpt-3.5-turbo",
+                messages=[
+                    {"role": "system", "content": "You are an experienced academic journal editor skilled at synthesizing research collections."},
+                    {"role": "user", "content": prompt}
+                ],
+                temperature=0.5,
+                max_tokens=800
+            )
+            
+            result_text = response.choices[0].message.content.strip()
+            
+            # Parse JSON response
+            if result_text.startswith('```'):
+                result_text = result_text.split('```')[1]
+                if result_text.startswith('json'):
+                    result_text = result_text[4:]
+            
+            result = json.loads(result_text)
+            
+            return {
+                'summary': result.get('summary', ''),
+                'key_themes': result.get('key_themes', []),
+                'notable_papers': result.get('notable_papers', []),
+                'journal_name': journal_name,
+                'issue_info': issue_info,
+                'paper_count': len(papers),
+                'method': 'ai'
+            }
+        
+        except Exception as e:
+            logger.error(f"AI summary generation failed: {e}")
+            return self._generate_summary_fallback(papers, journal_name, issue_info)
+    
+    def _generate_summary_fallback(self, papers: List[Dict], journal_name: str, issue_info: str) -> Dict:
+        """Fallback summary generation without AI"""
+        
+        # Count subjects
+        subject_counts = {}
+        for paper in papers:
+            subject = paper.get('classification', {}).get('primary_subject', 'Other')
+            subject_counts[subject] = subject_counts.get(subject, 0) + 1
+        
+        # Sort by count
+        sorted_subjects = sorted(subject_counts.items(), key=lambda x: x[1], reverse=True)
+        top_subjects = [s[0] for s in sorted_subjects[:5]]
+        
+        # Generate basic summary
+        summary_parts = [f"This issue of {journal_name} contains {len(papers)} papers."]
+        
+        if issue_info:
+            summary_parts[0] = f"This issue of {journal_name} ({issue_info}) contains {len(papers)} papers."
+        
+        if top_subjects:
+            if len(top_subjects) == 1:
+                summary_parts.append(f"The primary focus is on {top_subjects[0]}.")
+            else:
+                subjects_str = ', '.join(top_subjects[:-1]) + f" and {top_subjects[-1]}"
+                summary_parts.append(f"The papers cover topics in {subjects_str}.")
+        
+        # Add distribution info
+        if sorted_subjects:
+            top_subject, top_count = sorted_subjects[0]
+            percentage = (top_count / len(papers)) * 100
+            summary_parts.append(f"The most represented field is {top_subject} with {top_count} papers ({percentage:.0f}%).")
+        
+        return {
+            'summary': ' '.join(summary_parts),
+            'key_themes': top_subjects,
+            'notable_papers': [],
+            'journal_name': journal_name,
+            'issue_info': issue_info,
+            'paper_count': len(papers),
+            'method': 'fallback'
+        }

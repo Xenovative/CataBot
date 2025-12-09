@@ -15,9 +15,18 @@ class CatalogGenerator:
     def __init__(self, output_dir: str = 'output'):
         self.output_dir = output_dir
         os.makedirs(output_dir, exist_ok=True)
+        self.periodical_summary = None
     
-    def generate_catalog(self, papers: List[Dict], format: str = 'all') -> Dict[str, str]:
+    def set_periodical_summary(self, summary: Dict):
+        """Set the periodical summary to include in outputs"""
+        self.periodical_summary = summary
+    
+    def generate_catalog(self, papers: List[Dict], format: str = 'all', periodical_summary: Dict = None) -> Dict[str, str]:
         """Generate catalog in specified format(s)"""
+        
+        # Use provided summary or instance summary
+        if periodical_summary:
+            self.periodical_summary = periodical_summary
         
         output_files = {}
         
@@ -80,6 +89,27 @@ class CatalogGenerator:
         
         # Write to Excel with multiple sheets
         with pd.ExcelWriter(filepath, engine='openpyxl') as writer:
+            # Add periodical summary sheet first if available
+            if self.periodical_summary:
+                summary_data = {
+                    '項目 (Item)': [
+                        '期刊名稱 (Journal)',
+                        '期號資訊 (Issue Info)',
+                        '論文數量 (Paper Count)',
+                        '主要主題 (Key Themes)',
+                        '摘要 (Summary)'
+                    ],
+                    '內容 (Content)': [
+                        self.periodical_summary.get('journal_name', 'N/A'),
+                        self.periodical_summary.get('issue_info', 'N/A'),
+                        self.periodical_summary.get('paper_count', len(papers)),
+                        ', '.join(self.periodical_summary.get('key_themes', [])),
+                        self.periodical_summary.get('summary', 'N/A')
+                    ]
+                }
+                df_periodical = pd.DataFrame(summary_data)
+                df_periodical.to_excel(writer, sheet_name='期刊摘要 (Issue Summary)', index=False)
+            
             df_main.to_excel(writer, sheet_name='論文目錄 (Catalog)', index=False)
             df_summary.to_excel(writer, sheet_name='學科統計 (Summary)', index=False)
             
@@ -113,6 +143,7 @@ class CatalogGenerator:
                 'total_papers': len(papers),
                 'version': '1.0'
             },
+            'periodical_summary': self.periodical_summary if self.periodical_summary else None,
             'papers': papers
         }
         
@@ -255,7 +286,23 @@ class CatalogGenerator:
 </head>
 <body>
     <h1>📚 學術論文目錄 Academic Paper Catalog</h1>
-    
+    """
+        
+        # Add periodical summary section if available
+        if self.periodical_summary:
+            html += f"""
+    <div class="summary" style="background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);">
+        <h2>📰 期刊摘要 Issue Summary</h2>
+        <p><strong>期刊 Journal:</strong> {self.periodical_summary.get('journal_name', 'N/A')}</p>
+        <p><strong>期號 Issue:</strong> {self.periodical_summary.get('issue_info', 'N/A')}</p>
+        <p><strong>主要主題 Key Themes:</strong> {', '.join(self.periodical_summary.get('key_themes', []))}</p>
+        <div style="background: white; padding: 15px; border-radius: 8px; margin-top: 15px; border-left: 4px solid #3498db;">
+            <p style="margin: 0; line-height: 1.6;">{self.periodical_summary.get('summary', 'No summary available.')}</p>
+        </div>
+    </div>
+"""
+        
+        html += f"""
     <div class="summary">
         <h2>📊 統計摘要 Statistics</h2>
         <div class="stats">

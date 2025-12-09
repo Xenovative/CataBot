@@ -895,6 +895,8 @@
                 <h3 style="margin-bottom: 15px;" data-i18n="results_download_title">Download Results:</h3>
                 <div class="download-buttons" id="downloadButtons"></div>
 
+                <div id="periodicalSummaryContainer"></div>
+
                 <h3 style="margin-bottom: 15px;" data-i18n="results_subject_title">Subject Distribution:</h3>
                 <div class="subject-list" id="subjectList"></div>
 
@@ -1316,6 +1318,25 @@
             `).join('');
             document.getElementById('downloadButtons').innerHTML = downloadHtml;
             
+            // Periodical Summary (if available)
+            const summaryContainer = document.getElementById('periodicalSummaryContainer');
+            if (data.periodical_summary && data.periodical_summary.summary) {
+                const summaryHtml = `
+                    <div style="background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); padding: 20px; border-radius: 15px; margin-bottom: 25px;">
+                        <h3 style="margin-bottom: 15px; color: #333;">📰 ${t('results_summary_title')}</h3>
+                        <p style="margin-bottom: 10px;"><strong>${t('results_summary_journal')}:</strong> ${data.periodical_summary.journal_name || 'N/A'}</p>
+                        <p style="margin-bottom: 10px;"><strong>${t('results_summary_issue')}:</strong> ${data.periodical_summary.issue_info || 'N/A'}</p>
+                        <p style="margin-bottom: 10px;"><strong>${t('results_summary_themes')}:</strong> ${(data.periodical_summary.key_themes || []).join(', ') || 'N/A'}</p>
+                        <div style="background: white; padding: 15px; border-radius: 8px; margin-top: 15px; border-left: 4px solid #667eea;">
+                            <p style="margin: 0; line-height: 1.6; color: #333;">${data.periodical_summary.summary}</p>
+                        </div>
+                    </div>
+                `;
+                summaryContainer.innerHTML = summaryHtml;
+            } else {
+                summaryContainer.innerHTML = '';
+            }
+            
             // Subject distribution
             const subjectHtml = Object.entries(data.subject_distribution)
                 .sort((a, b) => b[1] - a[1])
@@ -1377,6 +1398,7 @@
             document.getElementById('fileInput').value = '';
             document.getElementById('progressContainer').classList.remove('active');
             document.getElementById('resultsContainer').classList.remove('active');
+            document.getElementById('periodicalSummaryContainer').innerHTML = '';
         }
 
         // History functions
