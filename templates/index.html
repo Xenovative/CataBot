@@ -1063,6 +1063,7 @@
             const formData = new FormData();
             selectedFiles.forEach(file => formData.append('files[]', file));
             formData.append('format', document.getElementById('uploadFormat').value);
+            formData.append('language', currentLang);  // Send current language for summary
             
             showProgress();
             
@@ -1103,7 +1104,8 @@
                         url: url,
                         depth: parseInt(document.getElementById('crawlDepth').value),
                         format: document.getElementById('crawlFormat').value,
-                        use_js_rendering: document.getElementById('useJsRendering').checked
+                        use_js_rendering: document.getElementById('useJsRendering').checked,
+                        language: currentLang  // Send current language for summary
                     })
                 });
                 
@@ -1136,7 +1138,8 @@
                     headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify({
                         directory: directory,
-                        format: document.getElementById('directoryFormat').value
+                        format: document.getElementById('directoryFormat').value,
+                        language: currentLang  // Send current language for summary
                     })
                 });
                 

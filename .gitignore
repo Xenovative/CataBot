@@ -53,3 +53,7 @@ Thumbs.db
 
 # Excel temp files
 ~$*.xlsx
+
+# Cache directories
+.cache/
+job_history/

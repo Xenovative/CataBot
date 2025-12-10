@@ -167,10 +167,11 @@ def get_all_job_history():
     return jobs_list
 
 
-def process_pdfs_background(job_id, pdf_files, output_format='all', source_url=None, html_metadata=None):
+def process_pdfs_background(job_id, pdf_files, output_format='all', source_url=None, html_metadata=None, language='en'):
     """Background task to process PDFs"""
     job = jobs[job_id]
     html_metadata = html_metadata or {}
+    job.language = language  # Store language in job for summary generation
     
     try:
         job.status = 'processing'
@@ -263,9 +264,9 @@ def process_pdfs_background(job_id, pdf_files, output_format='all', source_url=N
             save_job_to_history(job)
             return
         
-        # Generate periodical summary
+        # Generate periodical summary in the selected language
         job.current_file = 'Generating periodical summary...'
-        periodical_summary = classifier.generate_periodical_summary(papers)
+        periodical_summary = classifier.generate_periodical_summary(papers, language=getattr(job, 'language', 'en'))
         job.periodical_summary = periodical_summary
         logger.info(f"Generated periodical summary: {periodical_summary.get('key_themes', [])}")
         
@@ -286,9 +287,10 @@ def process_pdfs_background(job_id, pdf_files, output_format='all', source_url=N
         logger.error(f"Job {job_id} failed: {e}", exc_info=True)
 
 
-async def crawl_website_background(job_id, url, max_depth=2, output_format='all', use_js=False):
+async def crawl_website_background(job_id, url, max_depth=2, output_format='all', use_js=False, language='en'):
     """Background task to crawl website"""
     job = jobs[job_id]
+    job.language = language  # Store language in job
     
     try:
         job.status = 'crawling'
@@ -383,7 +385,7 @@ async def crawl_website_background(job_id, url, max_depth=2, output_format='all'
         # Process downloaded PDFs with source URL for journal detection
         pdf_files = [f['filepath'] for f in downloaded_files]
         html_metadata_map = {f['filepath']: f.get('html_metadata', {}) for f in downloaded_files}
-        process_pdfs_background(job_id, pdf_files, output_format, source_url=url, html_metadata=html_metadata_map)
+        process_pdfs_background(job_id, pdf_files, output_format, source_url=url, html_metadata=html_metadata_map, language=language)
         
     except Exception as e:
         job.status = 'failed'
@@ -409,6 +411,7 @@ def upload_files():
     
     files = request.files.getlist('files[]')
     output_format = request.form.get('format', 'all')
+    language = request.form.get('language', 'en')  # Get language from form
     
     if not files:
         return jsonify({'error': 'No files selected'}), 400
@@ -434,7 +437,8 @@ def upload_files():
     # Start processing in background
     thread = threading.Thread(
         target=process_pdfs_background,
-        args=(job_id, uploaded_paths, output_format)
+        args=(job_id, uploaded_paths, output_format),
+        kwargs={'language': language}
     )
     thread.daemon = True
     thread.start()
@@ -455,6 +459,7 @@ def crawl_website():
     depth = int(data.get('depth', 2))
     output_format = data.get('format', 'all')
     use_js = data.get('use_js_rendering', False)
+    language = data.get('language', 'en')  # Get language from request
     
     if not url:
         return jsonify({'error': 'URL is required'}), 400
@@ -463,11 +468,12 @@ def crawl_website():
     job_counter += 1
     job_id = f"crawl_{job_counter}"
     job = ProcessingJob(job_id, 'crawl', source_url=url)
+    job.language = language  # Store language in job
     jobs[job_id] = job
     
     # Start processing in background
     thread = threading.Thread(
-        target=lambda: asyncio.run(crawl_website_background(job_id, url, depth, output_format, use_js))
+        target=lambda: asyncio.run(crawl_website_background(job_id, url, depth, output_format, use_js, language))
     )
     thread.start()
     
@@ -485,6 +491,7 @@ def process_directory():
     data = request.get_json()
     directory = data.get('directory')
     output_format = data.get('format', 'all')
+    language = data.get('language', 'en')  # Get language from request
     
     if not directory or not os.path.exists(directory):
         return jsonify({'error': 'Invalid directory'}), 400
@@ -505,7 +512,8 @@ def process_directory():
     # Start processing
     thread = threading.Thread(
         target=process_pdfs_background,
-        args=(job_id, pdf_files, output_format)
+        args=(job_id, pdf_files, output_format),
+        kwargs={'language': language}
     )
     thread.daemon = True
     thread.start()

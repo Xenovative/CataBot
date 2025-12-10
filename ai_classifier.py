@@ -227,12 +227,20 @@ Respond in JSON format:
         
         return results
     
-    def generate_periodical_summary(self, papers: List[Dict], journal_name: str = None, issue_info: str = None) -> Dict:
-        """Generate a brief summary/abstract of the entire periodical issue"""
+    def generate_periodical_summary(self, papers: List[Dict], journal_name: str = None, issue_info: str = None, language: str = 'en') -> Dict:
+        """Generate a brief summary/abstract of the periodical issue(s)
+        
+        Args:
+            papers: List of paper dictionaries
+            journal_name: Optional journal name override
+            issue_info: Optional issue info override
+            language: Language for the summary ('en' or 'zh-TW')
+        """
         
         if not papers:
+            no_papers_msg = '沒有可用於摘要的論文。' if language == 'zh-TW' else 'No papers available for summary.'
             return {
-                'summary': 'No papers available for summary.',
+                'summary': no_papers_msg,
                 'key_themes': [],
                 'method': 'none'
             }
@@ -240,29 +248,38 @@ Respond in JSON format:
         # Extract journal info from papers if not provided
         if not journal_name:
             journals = [p.get('journal', '') for p in papers if p.get('journal') and p.get('journal') not in ['N/A', 'Unknown', '未知']]
-            journal_name = journals[0] if journals else 'Academic Journal'
+            journal_name = journals[0] if journals else ('學術期刊' if language == 'zh-TW' else 'Academic Journal')
         
+        # Detect issue range from papers
         if not issue_info:
-            # Try to construct issue info from papers
-            years = [p.get('year', '') for p in papers if p.get('year') and p.get('year') not in ['N/A', 'Unknown']]
-            volumes = [p.get('volume', '') for p in papers if p.get('volume') and p.get('volume') not in ['N/A', 'Unknown']]
-            issues = [p.get('issue', '') for p in papers if p.get('issue') and p.get('issue') not in ['N/A', 'Unknown']]
+            years = sorted(set([p.get('year', '') for p in papers if p.get('year') and p.get('year') not in ['N/A', 'Unknown']]))
+            volumes = sorted(set([p.get('volume', '') for p in papers if p.get('volume') and p.get('volume') not in ['N/A', 'Unknown']]))
+            issues = sorted(set([p.get('issue', '') for p in papers if p.get('issue') and p.get('issue') not in ['N/A', 'Unknown']]))
             
             parts = []
             if years:
-                parts.append(f"Year: {years[0]}")
+                if len(years) > 1:
+                    parts.append(f"Years: {years[0]}-{years[-1]}" if language == 'en' else f"年份: {years[0]}-{years[-1]}")
+                else:
+                    parts.append(f"Year: {years[0]}" if language == 'en' else f"年份: {years[0]}")
             if volumes:
-                parts.append(f"Vol. {volumes[0]}")
+                if len(volumes) > 1:
+                    parts.append(f"Vol. {volumes[0]}-{volumes[-1]}" if language == 'en' else f"卷 {volumes[0]}-{volumes[-1]}")
+                else:
+                    parts.append(f"Vol. {volumes[0]}" if language == 'en' else f"卷 {volumes[0]}")
             if issues:
-                parts.append(f"Issue {issues[0]}")
+                if len(issues) > 1:
+                    parts.append(f"Issues {issues[0]}-{issues[-1]}" if language == 'en' else f"期 {issues[0]}-{issues[-1]}")
+                else:
+                    parts.append(f"Issue {issues[0]}" if language == 'en' else f"期 {issues[0]}")
             issue_info = ', '.join(parts) if parts else ''
         
         if self.client:
-            return self._generate_summary_with_ai(papers, journal_name, issue_info)
+            return self._generate_summary_with_ai(papers, journal_name, issue_info, language)
         else:
-            return self._generate_summary_fallback(papers, journal_name, issue_info)
+            return self._generate_summary_fallback(papers, journal_name, issue_info, language)
     
-    def _generate_summary_with_ai(self, papers: List[Dict], journal_name: str, issue_info: str) -> Dict:
+    def _generate_summary_with_ai(self, papers: List[Dict], journal_name: str, issue_info: str, language: str = 'en') -> Dict:
         """Use OpenAI API to generate periodical summary"""
         try:
             # Prepare paper list for the prompt
@@ -280,19 +297,29 @@ Respond in JSON format:
             
             papers_text = '\n'.join(paper_list)
             
-            prompt = f"""You are an academic editor writing a brief editorial summary for a journal issue.
+            # Language-specific instructions
+            if language == 'zh-TW':
+                lang_instruction = "請用繁體中文撰寫摘要。"
+                system_msg = "你是一位經驗豐富的學術期刊編輯，擅長綜合研究論文集。請用繁體中文回覆。"
+            else:
+                lang_instruction = "Write the summary in English."
+                system_msg = "You are an experienced academic journal editor skilled at synthesizing research collections."
+            
+            prompt = f"""You are an academic editor writing a brief editorial summary for a journal collection.
 
 Journal: {journal_name}
 {f'Issue Info: {issue_info}' if issue_info else ''}
 Total Papers: {len(papers)}
 
-Papers in this issue:
+Papers in this collection:
 {papers_text}
 
 Write a concise editorial summary (150-250 words) that:
-1. Highlights the main themes and topics covered in this issue
+1. Highlights the main themes and topics covered across these issues
 2. Notes any notable contributions or trends
 3. Provides context for the collection as a whole
+
+{lang_instruction}
 
 Also identify 3-5 key themes/topics.
 
@@ -306,7 +333,7 @@ Respond in JSON format:
             response = self.client.chat.completions.create(
                 model="gpt-3.5-turbo",
                 messages=[
-                    {"role": "system", "content": "You are an experienced academic journal editor skilled at synthesizing research collections."},
+                    {"role": "system", "content": system_msg},
                     {"role": "user", "content": prompt}
                 ],
                 temperature=0.5,
@@ -335,9 +362,9 @@ Respond in JSON format:
         
         except Exception as e:
             logger.error(f"AI summary generation failed: {e}")
-            return self._generate_summary_fallback(papers, journal_name, issue_info)
+            return self._generate_summary_fallback(papers, journal_name, issue_info, language)
     
-    def _generate_summary_fallback(self, papers: List[Dict], journal_name: str, issue_info: str) -> Dict:
+    def _generate_summary_fallback(self, papers: List[Dict], journal_name: str, issue_info: str, language: str = 'en') -> Dict:
         """Fallback summary generation without AI"""
         
         # Count subjects
@@ -350,24 +377,41 @@ Respond in JSON format:
         sorted_subjects = sorted(subject_counts.items(), key=lambda x: x[1], reverse=True)
         top_subjects = [s[0] for s in sorted_subjects[:5]]
         
-        # Generate basic summary
-        summary_parts = [f"This issue of {journal_name} contains {len(papers)} papers."]
-        
-        if issue_info:
-            summary_parts[0] = f"This issue of {journal_name} ({issue_info}) contains {len(papers)} papers."
-        
-        if top_subjects:
-            if len(top_subjects) == 1:
-                summary_parts.append(f"The primary focus is on {top_subjects[0]}.")
-            else:
-                subjects_str = ', '.join(top_subjects[:-1]) + f" and {top_subjects[-1]}"
-                summary_parts.append(f"The papers cover topics in {subjects_str}.")
-        
-        # Add distribution info
-        if sorted_subjects:
-            top_subject, top_count = sorted_subjects[0]
-            percentage = (top_count / len(papers)) * 100
-            summary_parts.append(f"The most represented field is {top_subject} with {top_count} papers ({percentage:.0f}%).")
+        # Generate basic summary based on language
+        if language == 'zh-TW':
+            summary_parts = [f"本期刊《{journal_name}》收錄了 {len(papers)} 篇論文。"]
+            
+            if issue_info:
+                summary_parts[0] = f"本期刊《{journal_name}》（{issue_info}）收錄了 {len(papers)} 篇論文。"
+            
+            if top_subjects:
+                if len(top_subjects) == 1:
+                    summary_parts.append(f"主要聚焦於{top_subjects[0]}領域。")
+                else:
+                    subjects_str = '、'.join(top_subjects[:-1]) + f"及{top_subjects[-1]}"
+                    summary_parts.append(f"論文涵蓋{subjects_str}等主題。")
+            
+            if sorted_subjects:
+                top_subject, top_count = sorted_subjects[0]
+                percentage = (top_count / len(papers)) * 100
+                summary_parts.append(f"其中{top_subject}領域佔比最高，共 {top_count} 篇（{percentage:.0f}%）。")
+        else:
+            summary_parts = [f"This collection from {journal_name} contains {len(papers)} papers."]
+            
+            if issue_info:
+                summary_parts[0] = f"This collection from {journal_name} ({issue_info}) contains {len(papers)} papers."
+            
+            if top_subjects:
+                if len(top_subjects) == 1:
+                    summary_parts.append(f"The primary focus is on {top_subjects[0]}.")
+                else:
+                    subjects_str = ', '.join(top_subjects[:-1]) + f" and {top_subjects[-1]}"
+                    summary_parts.append(f"The papers cover topics in {subjects_str}.")
+            
+            if sorted_subjects:
+                top_subject, top_count = sorted_subjects[0]
+                percentage = (top_count / len(papers)) * 100
+                summary_parts.append(f"The most represented field is {top_subject} with {top_count} papers ({percentage:.0f}%).")
         
         return {
             'summary': ' '.join(summary_parts),
